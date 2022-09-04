@@ -1,13 +1,11 @@
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile
 from dotenv import load_dotenv
+from dependencies.dependencies import Dependencies
+from service.order_book_service import OrderBookService
+from service.metadata_service import MetadataService
 
 load_dotenv()
-
-from service.order_book_service import OrderBookService
-from dependencies.dependencies import Dependencies
-
-Dependencies.build()
 
 app = FastAPI()
 
@@ -40,5 +38,23 @@ async def get_orderbook(
 
 
 @app.get("/exchange/{exchange_name}/metadata")
-async def get_metadata():
-    pass
+async def get_metadata(exchange_name: str):
+    metadata_dao = Dependencies.get_metadata_dao("memory")
+    metadata_service = MetadataService(metadata_dao=metadata_dao)
+
+    res = await metadata_service.get_metadata(exchange_name=exchange_name)
+
+    return {"response": res}
+
+
+@app.put("/exchange/{exchange_name}/metadata")
+async def upload_metadata(exchange_name: str, file: UploadFile):
+    metadata_dao = Dependencies.get_metadata_dao("memory")
+
+    data = await file.read()
+    metadata_service = MetadataService(metadata_dao=metadata_dao)
+    await metadata_service.upload_metadata(
+        exchange_name=exchange_name, content_type=file.content_type, data=data
+    )
+
+    return {"response": "Metadata uploaded successfully!"}

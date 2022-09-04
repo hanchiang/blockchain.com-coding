@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional
 from .third_party_order_book_service import ThirdPartyOrderBookService
 from src.typings.order_book import OrderBookDto
 from src.transformer.third_party_order_book_transformer import (
@@ -7,6 +7,8 @@ from src.transformer.third_party_order_book_transformer import (
 
 
 class OrderBookService:
+    """Get order book details from exchange"""
+
     def __init__(
         self,
         third_party_order_book_service: ThirdPartyOrderBookService,

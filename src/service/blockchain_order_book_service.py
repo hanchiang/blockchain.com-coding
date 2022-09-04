@@ -11,7 +11,6 @@ class BlockChainOrderBookService(ThirdPartyOrderBookService):
 
     async def get_trading_pairs_and_cache(self):
         trading_pair_res = await self.get_trading_pairs()
-        print(f"There are {len(trading_pair_res.keys())} trading pairs")
         for key in trading_pair_res.keys():
             self.trading_pairs[key] = key
 
