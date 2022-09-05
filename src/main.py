@@ -1,18 +1,13 @@
 from typing import Optional
 from fastapi import FastAPI, UploadFile
 from dotenv import load_dotenv
-from dependencies.dependencies import Dependencies
-from service.order_book_service import OrderBookService
-from service.metadata_service import MetadataService
+from src.dependencies.dependencies import Dependencies
+from src.service.order_book_service import OrderBookService
+from src.service.metadata_service import MetadataService
 
 load_dotenv()
 
 app = FastAPI()
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
 
 
 @app.get("/exchanges/{exchange_name}/order-books")
@@ -46,15 +41,12 @@ async def get_metadata(exchange_name: str):
 
     return {"response": res}
 
-
 @app.put("/exchange/{exchange_name}/metadata")
 async def upload_metadata(exchange_name: str, file: UploadFile):
     metadata_dao = Dependencies.get_metadata_dao("memory")
 
     data = await file.read()
     metadata_service = MetadataService(metadata_dao=metadata_dao)
-    await metadata_service.upload_metadata(
-        exchange_name=exchange_name, content_type=file.content_type, data=data
-    )
+    await metadata_service.upload_metadata(exchange_name=exchange_name, content_type=file.content_type, data=data)
 
     return {"response": "Metadata uploaded successfully!"}
