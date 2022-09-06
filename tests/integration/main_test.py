@@ -1,12 +1,13 @@
 from typing import Union
 import pytest
 import asyncio
+import tempfile
 from typing import Optional
 from httpx import AsyncClient
 from src.main import app
 from src.typings.order_book import OrderBookDto, Bid, Ask
 
-class TestMain:
+class TestOrderBook:
     def verify_symbol(self, symbol):
         assert len(symbol) > 1
         assert len(symbol.split('-')) == 2
@@ -100,6 +101,76 @@ class TestMain:
             assert order_books[0]["symbol"] == "BTC-USD"
 
             self.verify_order_book(order_books)
+
+class TestMetadata:
+    # See: https://pypi.org/project/pytest-asyncio/
+    @pytest.fixture(scope="session")
+    def event_loop(self):
+        policy = asyncio.get_event_loop_policy()
+        loop = policy.new_event_loop()
+        yield loop
+        loop.close()
+
+
+    @pytest.mark.asyncio
+    async def test_get_metadata_empty(self):
+        async with AsyncClient(app=app, base_url="http://test") as ac:
+            res = await ac.get("/exchange/blockchain.com/metadata")
+
+            assert res.status_code == 200
+            metadata = res.json()["response"]
+            assert metadata == None
+
+    @pytest.mark.asyncio
+    async def test_upload_metadata_from_memory(self):
+        async with AsyncClient(app=app, base_url="http://test") as ac:
+            with tempfile.SpooledTemporaryFile() as file:
+                data = b"key,value\r\nname,blockchain.com\r\nwebsite,https://www.blockchain.com\r\n"
+                file.write(data)
+                file.seek(0)
+
+                files = {
+                    "file": ("metadata.csv", file, "text/csv")
+                }
+                res = await ac.put("/exchange/blockchain.com/metadata", files=files)
+
+                assert res.status_code == 200
+                assert res.json()["response"] == "Metadata uploaded successfully!"
+            
+            # Should be able to get metadata after uploading it
+            res = await ac.get("/exchange/blockchain.com/metadata")
+            expected = {
+                "name": "blockchain.com",
+                "website": "https://www.blockchain.com"
+            }
+
+            assert res.json()['response'] == expected
+
+
+    @pytest.mark.asyncio
+    async def test_upload_metadata_from_file(self):
+        async with AsyncClient(app=app, base_url="http://test") as ac:
+            files = {
+                "file": open("metadata.csv", "rb")
+            }
+            res = await ac.put("/exchange/blockchain.com/metadata", files=files)
+
+            assert res.status_code == 200
+            assert res.json()["response"] == "Metadata uploaded successfully!"
+
+            # Should be able to get metadata after uploading it
+            res = await ac.get("/exchange/blockchain.com/metadata")
+            expected = {
+                "name": "blockchain.com",
+                "website": "https://www.blockchain.com",
+                "description": "The world’s best crypto platform"
+            }
+
+            assert res.json()['response'] == expected
+
+    
+                
+
 
 
 
