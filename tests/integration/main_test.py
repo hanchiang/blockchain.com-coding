@@ -89,7 +89,6 @@ class TestOrderBook:
         
     @pytest.mark.asyncio
     async def test_get_orderbook_single_symbol(self):
-        loop = asyncio.get_running_loop()
         async with AsyncClient(app=app, base_url="http://test") as ac:
             res = await ac.get("/exchanges/blockchain.com/order-books", params={
                 "symbol": "BTC-USD"
