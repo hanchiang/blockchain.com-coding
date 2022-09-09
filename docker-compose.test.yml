@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  backend:
+    container_name: blockchain.com_test
+    build:
+      context: .
+      target: test
+    working_dir: /code
+    command: pytest
+    volumes:
+      - ./:/code

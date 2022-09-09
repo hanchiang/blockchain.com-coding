@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  backend:
+    container_name: blockchain.com_development
+    build:
+      context: .
+      target: development
+    working_dir: /code
+    env_file: .env
+    command: uvicorn --reload --app-dir src --host 0.0.0.0 main:app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/code/src
