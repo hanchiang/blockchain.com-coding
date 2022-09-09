@@ -15,3 +15,10 @@
 * Start development server: `docker-compose up -d`
   * Server runs at: `localhost:8000`
 * Run test: `docker-compose -f docker-compose.test.yml up`
+
+# Design
+## Order book service
+![Order book service](images/Order%20book%20service.jpeg)
+
+## Metadata service
+![Metadata service](images/Metadata%20service.jpeg)
